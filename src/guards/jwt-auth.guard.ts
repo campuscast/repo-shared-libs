@@ -1,9 +1,15 @@
 import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
-import * as crypto from 'crypto';
+import * as jwt from 'jsonwebtoken';
 import type { JwtPayload } from '../interfaces/common.interfaces';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
+  private readonly secret: string;
+
+  constructor() {
+    this.secret = process.env.JWT_SECRET || 'dev-secret-change-in-production';
+  }
+
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
     const authHeader = request.headers['authorization'];
@@ -14,18 +20,13 @@ export class JwtAuthGuard implements CanActivate {
 
     const token = authHeader.slice(7);
     try {
-      // Stub: in production, verify with jose/jsonwebtoken against JWKS
-      const parts = token.split('.');
-      if (parts.length !== 3) throw new Error('Invalid JWT format');
-      const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString()) as JwtPayload;
-
-      if (payload.exp && payload.exp * 1000 < Date.now()) {
-        throw new UnauthorizedException('Token expired');
-      }
-
+      const payload = jwt.verify(token, this.secret) as jwt.JwtPayload & JwtPayload;
       request.user = payload;
       return true;
     } catch (err) {
+      if (err instanceof jwt.TokenExpiredError) {
+        throw new UnauthorizedException('Token expired');
+      }
       throw new UnauthorizedException('Invalid token');
     }
   }

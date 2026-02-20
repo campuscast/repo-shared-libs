@@ -1,8 +1,15 @@
 import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import * as jwt from 'jsonwebtoken';
 import type { DeviceTokenPayload } from '../interfaces/common.interfaces';
 
 @Injectable()
 export class DeviceAuthGuard implements CanActivate {
+  private readonly secret: string;
+
+  constructor() {
+    this.secret = process.env.JWT_SECRET || 'dev-secret-change-in-production';
+  }
+
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
     const authHeader = request.headers['authorization'];
@@ -13,18 +20,13 @@ export class DeviceAuthGuard implements CanActivate {
 
     const token = authHeader.slice(7);
     try {
-      // Stub: in production verify device JWT with device JWKS endpoint
-      const parts = token.split('.');
-      if (parts.length !== 3) throw new Error('Invalid device token format');
-      const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString()) as DeviceTokenPayload;
-
-      if (payload.exp && payload.exp * 1000 < Date.now()) {
-        throw new UnauthorizedException('Device token expired');
-      }
-
+      const payload = jwt.verify(token, this.secret) as jwt.JwtPayload & DeviceTokenPayload;
       request.device = payload;
       return true;
-    } catch {
+    } catch (err) {
+      if (err instanceof jwt.TokenExpiredError) {
+        throw new UnauthorizedException('Device token expired');
+      }
       throw new UnauthorizedException('Invalid device token');
     }
   }
