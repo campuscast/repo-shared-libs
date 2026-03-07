@@ -14,8 +14,8 @@ export class DeviceAuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const authHeader = request.headers['authorization'];
 
-    if (!authHeader?.startsWith('Device ')) {
-      throw new UnauthorizedException('Missing Device token');
+    if (!authHeader?.startsWith('Bearer ')) {
+      throw new UnauthorizedException('Missing Bearer token');
     }
 
     const token = authHeader.slice(7);
@@ -25,9 +25,9 @@ export class DeviceAuthGuard implements CanActivate {
       return true;
     } catch (err) {
       if (err instanceof jwt.TokenExpiredError) {
-        throw new UnauthorizedException('Device token expired');
+        throw new UnauthorizedException('Bearer token expired');
       }
-      throw new UnauthorizedException('Invalid device token');
+      throw new UnauthorizedException('Invalid Bearer token');
     }
   }
 }

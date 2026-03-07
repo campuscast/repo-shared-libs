@@ -1,6 +1,9 @@
 // Health
 export { HealthModule } from './health/health.module';
 
+// Metrics
+export { MetricsModule } from './metrics/metrics.module';
+
 // Logger
 export { LoggerModule, createLogger } from './logger/logger.module';
 
@@ -27,6 +30,10 @@ export { LoggingInterceptor } from './interceptors/logging.interceptor';
 
 // Interfaces
 export * from './interfaces/common.interfaces';
+
+// Clients
+export { AuditClient } from './clients/audit.client';
+export type { AuditEventPayload } from './clients/audit.client';
 
 // Decorators
 export { CorrelationId } from './decorators/correlation-id.decorator';
