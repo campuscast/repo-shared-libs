@@ -2,6 +2,7 @@ export interface JwtPayload {
   sub: string;       // user_id
   email: string;
   roles: string[];
+  permissions?: string[];
   zone_ids: string[];
   mfa_verified: boolean;
   iat: number;

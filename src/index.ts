@@ -20,6 +20,7 @@ export { RedisModule, RedisService } from './redis/redis.module';
 export { JwtAuthGuard } from './guards/jwt-auth.guard';
 export { ZoneScopeGuard } from './guards/zone-scope.guard';
 export { DeviceAuthGuard } from './guards/device-auth.guard';
+export { PermissionsGuard } from './guards/permissions.guard';
 
 // Filters
 export { AllExceptionsFilter } from './filters/all-exceptions.filter';
@@ -39,3 +40,4 @@ export type { AuditEventPayload } from './clients/audit.client';
 export { CorrelationId } from './decorators/correlation-id.decorator';
 export { CurrentUser } from './decorators/current-user.decorator';
 export { ZoneId } from './decorators/zone-id.decorator';
+export { RequirePermissions } from './decorators/require-permissions.decorator';
