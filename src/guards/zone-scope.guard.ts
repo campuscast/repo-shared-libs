@@ -11,8 +11,8 @@ export class ZoneScopeGuard implements CanActivate {
       throw new ForbiddenException('No authenticated user');
     }
 
-    // Admin role bypasses zone scoping
-    if (user.roles?.includes('admin')) {
+    // Full-access roles bypass zone scoping
+    if (user.roles?.includes('admin') || user.roles?.includes('super_admin')) {
       return true;
     }
 
