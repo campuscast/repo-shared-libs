@@ -16,20 +16,41 @@ export class ZoneScopeGuard implements CanActivate {
       return true;
     }
 
-    // Extract zoneId from params, query, or body
-    const zoneId =
-      request.params?.zoneId ||
-      request.query?.zone_id ||
-      request.body?.zone_id;
-
-    if (!zoneId) {
+    const zoneIds = this.extractZoneIds(request);
+    if (zoneIds.length === 0) {
       return true; // No zone context required
     }
 
-    if (!user.zone_ids?.includes(zoneId)) {
-      throw new ForbiddenException(`Access denied for zone ${zoneId}`);
+    const allowedZones = new Set((user.zone_ids || []).map(String));
+    const forbiddenZoneId = zoneIds.find((zoneId) => !allowedZones.has(zoneId));
+
+    if (forbiddenZoneId) {
+      throw new ForbiddenException(`Access denied for zone ${forbiddenZoneId}`);
     }
 
     return true;
+  }
+
+  private extractZoneIds(request: Record<string, any>): string[] {
+    const candidates = [
+      request.params?.zoneId,
+      request.query?.zone_id,
+      request.query?.zone_ids,
+      request.body?.zone_id,
+      request.body?.zone_ids,
+    ];
+
+    return Array.from(new Set(
+      candidates
+        .flatMap((candidate) => {
+          if (Array.isArray(candidate)) return candidate;
+          if (typeof candidate === 'string' && candidate.includes(',')) {
+            return candidate.split(',');
+          }
+          return candidate == null ? [] : [candidate];
+        })
+        .map((zoneId) => String(zoneId || '').trim())
+        .filter(Boolean),
+    ));
   }
 }
